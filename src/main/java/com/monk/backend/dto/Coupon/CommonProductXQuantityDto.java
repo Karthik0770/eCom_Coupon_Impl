@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ListItem{
+public class CommonProductXQuantityDto {
     private int productId;
-    private int productQuantity;
+    private int quantity;
 }

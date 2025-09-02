@@ -22,4 +22,8 @@ public class ProductDao {
         Optional<Product> product = productRepository.findById(id);
         return product.orElse(null);
     }
+
+    public Product addNewProduct(Product productToBeSaved){
+        return productRepository.save(productToBeSaved);
+    }
 }

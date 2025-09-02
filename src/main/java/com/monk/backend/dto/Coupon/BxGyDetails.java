@@ -1,19 +1,41 @@
 package com.monk.backend.dto.Coupon;
 
+import com.monk.backend.dto.Cart.CartRequestDto;
+import com.monk.backend.entity.Coupon;
 import com.monk.backend.entity.CouponXProduct;
-import com.monk.backend.utils.DiscountType;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class BxGyDetails {
-    private List<CommonBxGyProductDto> xProducts;
-    private List<CommonBxGyProductDto> yProducts;
+    private List<CommonProductXQuantityDto> xProducts;
+    private List<CommonProductXQuantityDto> yProducts;
+
+    public static Boolean isApplicable(CartRequestDto cart, Coupon coupon){
+        Map<Integer, Integer> cartMap = cart.getCartProducts().stream()
+                .collect(Collectors.toMap(
+                        CommonProductXQuantityDto::getProductId,
+                        CommonProductXQuantityDto::getQuantity
+                ));
+
+        for (CouponXProduct cxp : coupon.getXProducts()) {
+            Integer productId = cxp.getProduct().getProductId();
+            int requiredQty = cxp.getQuantityRequired();
+
+            int cartQty = cartMap.getOrDefault(productId, 0);
+
+            if (cartQty < requiredQty) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 }
