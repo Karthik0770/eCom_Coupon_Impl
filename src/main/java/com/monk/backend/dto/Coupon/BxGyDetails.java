@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -17,8 +18,12 @@ import java.util.stream.Collectors;
 public class BxGyDetails {
     private List<CommonProductXQuantityDto> xProducts;
     private List<CommonProductXQuantityDto> yProducts;
+    private Integer repetitionLimit;
 
     public static Boolean isApplicable(CartRequestDto cart, Coupon coupon){
+        if (coupon.getStartDate().after(new Date())) return false;
+        if (coupon.getEndDate().before(new Date())) return false;
+
         Map<Integer, Integer> cartMap = cart.getCartProducts().stream()
                 .collect(Collectors.toMap(
                         CommonProductXQuantityDto::getProductId,

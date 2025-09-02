@@ -1,5 +1,6 @@
 package com.monk.backend.dto.Coupon;
 
+import com.monk.backend.dao.ProductDao;
 import com.monk.backend.dto.Cart.CartRequestDto;
 import com.monk.backend.entity.Coupon;
 import com.monk.backend.entity.Product;
@@ -11,6 +12,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Date;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -20,12 +23,12 @@ public class CartWiseDetails {
     private DiscountType discountType;
     private Integer discountAmount;
 
-    public static boolean isApplicable(CartRequestDto cart, Coupon coupon, ProductRepository productRepository) {
+    public static boolean isApplicable(CartRequestDto cart, Coupon coupon, ProductDao productDao) {
+        if (coupon.getStartDate().after(new Date())) return false;
+        if (coupon.getEndDate().before(new Date())) return false;
         int cartTotal = 0;
-
         for (CommonProductXQuantityDto cp : cart.getCartProducts()) {
-            Product product = productRepository.findById(cp.getProductId())
-                    .orElseThrow(() -> new RuntimeException("Product not found: " + cp.getProductId()));
+            Product product = productDao.findById(cp.getProductId());
 
             cartTotal += product.getPrice() * cp.getQuantity();
         }

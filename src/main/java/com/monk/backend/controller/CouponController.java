@@ -3,6 +3,7 @@ package com.monk.backend.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.monk.backend.dto.Cart.CartRequestDto;
 import com.monk.backend.dto.Coupon.CreateNewCouponRequest;
+import com.monk.backend.dto.Coupon.DiscountObjectDto;
 import com.monk.backend.dto.ResponseDto;
 import com.monk.backend.entity.Coupon;
 import com.monk.backend.service.CouponService;
@@ -41,9 +42,9 @@ public class CouponController {
     @GetMapping("coupons")
     public ResponseEntity<ResponseDto<List<Coupon>>> getAllCoupons(){
         ResponseDto<List<Coupon>> response = new ResponseDto();
-        List<Coupon> coupons = null;
         try{
-            coupons = couponService.getAllCoupons();
+            List<Coupon> coupons = couponService.getAllCoupons();
+            response.setPayload(coupons);
         }catch(Exception e){
             response.setStatus("FAILURE");
             response.setMessage(e.getMessage());
@@ -52,7 +53,6 @@ public class CouponController {
         }
         response.setStatus("SUCCESS");
         response.setMessage("All coupons fetched!");
-        response.setPayload(coupons);
         return new ResponseEntity<>(response,HttpStatus.OK);
     }
 
@@ -72,8 +72,37 @@ public class CouponController {
     }
 
     @PostMapping("applicable-coupons")
-    public ResponseEntity<?> getApplicableCouponsForCart(@RequestBody CartRequestDto cart){
-        return new ResponseEntity<>(couponService.getApplicableCouponsForCart(cart),HttpStatus.OK);
+    public ResponseEntity<ResponseDto<List<DiscountObjectDto>>> getApplicableCouponsForCart(@RequestBody CartRequestDto cart){
+        ResponseDto<List<DiscountObjectDto>> response = new ResponseDto<>();
+        try{
+            List<DiscountObjectDto> applicableCoupons = couponService.getApplicableCouponsForCart(cart);
+            response.setPayload(applicableCoupons);
+        }catch (Exception e){
+            response.setStatus("FAILURE");
+            response.setMessage(e.getMessage());
+            response.setPayload(null);
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        }
+        response.setStatus("SUCCESS");
+        response.setMessage("Applicable coupons fetched!");
+        return new ResponseEntity<>(response,HttpStatus.OK);
+    }
+
+    @PostMapping("apply-coupon/{couponId}")
+    public ResponseEntity<ResponseDto<DiscountObjectDto>> applyCouponOnCart(@RequestBody CartRequestDto cartRequestDto, @PathVariable Integer couponId){
+        ResponseDto<DiscountObjectDto> response = new ResponseDto<>();
+        try {
+            DiscountObjectDto discountObject = couponService.applyCouponOnCart(cartRequestDto,couponId);
+            response.setPayload(discountObject);
+        }catch (Exception e){
+            response.setStatus("FAILURE");
+            response.setMessage(e.getMessage());
+            response.setPayload(null);
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        }
+        response.setStatus("SUCCESS");
+        response.setMessage("Coupon application details fetched!");
+        return new ResponseEntity<>(response,HttpStatus.OK);
     }
 
 }

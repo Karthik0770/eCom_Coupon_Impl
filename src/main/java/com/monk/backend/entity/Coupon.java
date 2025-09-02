@@ -29,6 +29,7 @@ public class Coupon {
     @Enumerated(EnumType.STRING)
     private DiscountType discountType;
     private int discountAmount;
+    private int repetitionLimit;
     @DateTimeFormat(pattern = "dd-MM-yyyy")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
     private Date startDate;

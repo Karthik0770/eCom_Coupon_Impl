@@ -9,6 +9,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -22,10 +23,10 @@ public class ProductWiseDetails {
     private DiscountType discountType;
     private Integer discountAmount;
 
-    public static boolean isApplicableProductWise(
-            CartRequestDto cart,
-            Coupon coupon
-    ) {
+    public static boolean isApplicable(CartRequestDto cart, Coupon coupon) {
+        if (coupon.getStartDate().after(new Date())) return false;
+        if (coupon.getEndDate().before(new Date())) return false;
+
         Set<Integer> cartProductIds = cart.getCartProducts().stream()
                 .map(CommonProductXQuantityDto::getProductId)
                 .collect(Collectors.toSet());
