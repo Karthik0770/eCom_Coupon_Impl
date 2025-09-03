@@ -1,7 +1,10 @@
 package com.monk.backend.dao;
 
+import com.monk.backend.entity.Coupon;
 import com.monk.backend.entity.Product;
 import com.monk.backend.repository.ProductRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -13,9 +16,17 @@ public class ProductDao {
 
     @Autowired
     ProductRepository productRepository;
+    Logger logger = LoggerFactory.getLogger("logger");
 
     public List<Product> findAllById(List<Integer> productIds){
-        return productRepository.findAllById(productIds);
+        List<Product> products = null;
+        try{
+            products =productRepository.findAllById(productIds);
+        }catch (Exception e){
+            logger.error("Error while fetching products from db");
+        }
+        if (products!=null && products.isEmpty()) return null;
+        return products;
     }
 
     public Product findById(int id){

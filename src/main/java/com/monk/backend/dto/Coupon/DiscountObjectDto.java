@@ -13,9 +13,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 public class DiscountObjectDto {
+    private Integer couponId;
     private String code;
     @Enumerated(EnumType.STRING)
     private CouponType type;
+    private Integer originalCartAmount;
     private Integer discountAmount;
     private Integer finalCartAmount;
     private String message;

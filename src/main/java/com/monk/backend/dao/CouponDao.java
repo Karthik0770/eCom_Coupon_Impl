@@ -18,12 +18,19 @@ public class CouponDao {
     Logger logger = LoggerFactory.getLogger("logger");
 
     public List<Coupon> getCoupons(){
-        return couponRepository.findAll();
+        List<Coupon> allCoupons = null;
+        try{
+            allCoupons = couponRepository.findAll();
+        }catch (Exception e){
+            logger.error("Error while fetching coupons from db");
+        }
+        if (allCoupons!=null && allCoupons.isEmpty()) return null;
+        return allCoupons;
     }
 
     public Coupon getCouponById(int id){
         Optional<Coupon> coupon = couponRepository.findById(id);
-        return coupon.get();
+        return coupon.orElse(null);
     }
 
     public Coupon deleteCouponById(int id){

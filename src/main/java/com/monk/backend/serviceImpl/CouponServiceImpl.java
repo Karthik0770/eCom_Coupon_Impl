@@ -10,7 +10,9 @@ import com.monk.backend.entity.Coupon;
 import com.monk.backend.entity.CouponXProduct;
 import com.monk.backend.entity.CouponYProduct;
 import com.monk.backend.entity.Product;
+import com.monk.backend.exceptions.CouponNotFoundException;
 import com.monk.backend.exceptions.FieldEmptyOrNullException;
+import com.monk.backend.exceptions.ProductNotFoundException;
 import com.monk.backend.service.CouponService;
 import com.monk.backend.utils.CouponType;
 import com.monk.backend.utils.DiscountType;
@@ -36,39 +38,23 @@ public class CouponServiceImpl implements CouponService {
 
     @Override
     public List<Coupon> getAllCoupons() {
-        return couponDao.getCoupons();
+        List<Coupon> coupons = couponDao.getCoupons();
+        if (coupons==null) throw new CouponNotFoundException(-1);
+        return coupons;
     }
 
     @Override
     public Coupon getCouponById(int id) {
-        return couponDao.getCouponById(id);
+        Coupon coupon = couponDao.getCouponById(id);
+        if (coupon==null) throw new CouponNotFoundException(id);
+        return coupon;
     }
 
     @Override
     public Coupon deleteCouponByID(int id) {
         Coupon deletedCoupon = couponDao.deleteCouponById(id);
+        if (deletedCoupon == null) throw new CouponNotFoundException(id);
         return deletedCoupon;
-    }
-
-    @Override
-    public Coupon updateCouponById(int id, CreateNewCouponRequest couponReq) {
-        Coupon couponFromDb = couponDao.getCouponById(id);
-        if(couponReq.getName()!=null
-                && !couponReq.getName().isEmpty()
-                && couponReq.getName()!=couponFromDb.getName())
-            couponFromDb.setName(couponReq.getName());
-        if(couponReq.getType()!=null
-                && couponReq.getType()!=couponFromDb.getType())
-            couponFromDb.setType(couponReq.getType());
-        if(couponReq.getCode()!=null
-                && !couponReq.getCode().isEmpty()
-                && couponReq.getCode()!=couponFromDb.getCode())
-            couponFromDb.setCode(couponReq.getCode());
-        if(couponReq.getStartDate()!=null
-                && couponReq.getStartDate()!=couponFromDb.getStartDate())
-            couponFromDb.setStartDate(couponReq.getStartDate());
-
-        return couponDao.createNewCoupon(couponFromDb);
     }
 
     @Override
@@ -118,6 +104,7 @@ public class CouponServiceImpl implements CouponService {
                 }
                 if(details.getProducts()!=null && !details.getProducts().isEmpty()){
                     List<Product> products = productDao.findAllById(details.getProducts());
+                    if (products==null) throw new ProductNotFoundException(-1);
                     coupon.setProducts(products);
                 }
                 else{
@@ -155,7 +142,7 @@ public class CouponServiceImpl implements CouponService {
                     coupon.getXProducts().clear();
                     for (CommonProductXQuantityDto dto : details.getXProducts()) {
                         Product product = productDao.findById(dto.getProductId());
-
+                        if (product == null) throw new ProductNotFoundException(dto.getProductId());
                         CouponXProduct cx = new CouponXProduct();
                         cx.setCoupon(coupon);
                         cx.setProduct(product);
@@ -172,7 +159,7 @@ public class CouponServiceImpl implements CouponService {
                     coupon.getYProducts().clear();
                     for (CommonProductXQuantityDto dto : details.getYProducts()) {
                         Product product = productDao.findById(dto.getProductId());
-
+                        if (product == null) throw new ProductNotFoundException(dto.getProductId());
                         CouponYProduct cy = new CouponYProduct();
                         cy.setCoupon(coupon);
                         cy.setProduct(product);
@@ -227,56 +214,24 @@ public class CouponServiceImpl implements CouponService {
         }
         return null;
     }
-//
-//    public DiscountObjectDto calculateDiscountForCart(CartRequestDto cart, Coupon coupon) {
-//        DiscountObjectDto discountObject = new DiscountObjectDto();
-//        int cartTotal = 0;
-//        if(coupon.getType()==CouponType.CART_WISE){
-//            for(CommonProductXQuantityDto productxquantity: cart.getCartProducts()){
-//                Product product = productDao.findById(productxquantity.getProductId());
-//                cartTotal += product.getPrice()*productxquantity.getQuantity();
-//            }
-//            if(coupon.getDiscountType() == DiscountType.FLAT){
-//                discountObject.setDiscountAmount(coupon.getDiscountAmount());
-//                discountObject.setFinalCartAmount(cartTotal - coupon.getDiscountAmount());
-//            }else if(coupon.getDiscountType() == DiscountType.PERCENTAGE){
-//                int discountAmount = cartTotal*(coupon.getDiscountAmount()/100);
-//                discountObject.setDiscountAmount(discountAmount);
-//                discountObject.setFinalCartAmount(cartTotal-discountAmount);
-//            }
-//            discountObject.setType(coupon.getType());
-//            discountObject.setCode(coupon.getCode());
-//            discountObject.setMessage("Get discount of "+discountObject.getDiscountAmount()+"!");
-//        }else if(coupon.getType()==CouponType.PRODUCT_WISE){
-//            int discountAmount = 0;
-//            for(CommonProductXQuantityDto productxquantity: cart.getCartProducts()){
-//                Product product = productDao.findById(productxquantity.getProductId());
-//                if (coupon.getProducts().contains(product)){
-//                    if(coupon.getDiscountType()==DiscountType.FLAT){
-//                        discountAmount += coupon.getDiscountAmount();
-//                    }else if(coupon.getDiscountType()==DiscountType.PERCENTAGE){
-//                        discountAmount += coupon.getDiscountAmount();
-//                    }
-//                }
-//                cartTotal += product.getPrice()*productxquantity.getQuantity();
-//            }
-//        }
-//
-//        return discountObject;
-//    }
 
     public DiscountObjectDto calculateDiscountForCart(CartRequestDto cart, Coupon coupon) {
         DiscountObjectDto discountObject = new DiscountObjectDto();
 
-        // Fetch all products efficiently
         List<Integer> productIds = cart.getCartProducts().stream()
                 .map(CommonProductXQuantityDto::getProductId)
                 .collect(Collectors.toList());
 
-        Map<Integer, Product> productMap = productDao.findAllById(productIds).stream()
+        List<Product> productList = new ArrayList<>();
+        for(Integer pId:productIds){
+            Product p = productDao.findById(pId);
+            if(p==null) throw new ProductNotFoundException(pId);
+            productList.add(p);
+        }
+
+        Map<Integer, Product> productMap = productList.stream()
                 .collect(Collectors.toMap(Product::getProductId, product -> product));
 
-        // Calculate cart total
         int cartTotal = cart.getCartProducts().stream()
                 .mapToInt(item -> {
                     Product product = productMap.get(item.getProductId());
@@ -301,7 +256,6 @@ public class CouponServiceImpl implements CouponService {
 
     private DiscountObjectDto calculateCartWiseDiscount(CartRequestDto cart, Coupon coupon,
                                                         int cartTotal, DiscountObjectDto discountObject) {
-        // Check threshold
         if (cartTotal < coupon.getThresholdAmount()) {
             discountObject.setDiscountAmount(0);
             discountObject.setFinalCartAmount(cartTotal);
@@ -317,7 +271,8 @@ public class CouponServiceImpl implements CouponService {
         } else {
             throw new IllegalArgumentException("Unsupported discount type: " + coupon.getDiscountType());
         }
-
+        discountObject.setOriginalCartAmount(cartTotal);
+        discountObject.setCouponId(coupon.getCouponId());
         discountObject.setDiscountAmount(discountAmount);
         discountObject.setFinalCartAmount(cartTotal - discountAmount);
         discountObject.setMessage("Get " + discountAmount + " discount on your cart!");
@@ -345,7 +300,8 @@ public class CouponServiceImpl implements CouponService {
                 }
             }
         }
-
+        discountObject.setOriginalCartAmount(cartTotal);
+        discountObject.setCouponId(coupon.getCouponId());
         discountObject.setDiscountAmount(discountAmount);
         discountObject.setFinalCartAmount(cartTotal - discountAmount);
         discountObject.setMessage("Get " + discountAmount + " discount on selected products!");
@@ -357,17 +313,14 @@ public class CouponServiceImpl implements CouponService {
                                                     Integer cartTotal, Map<Integer, Product> productMap,
                                                     DiscountObjectDto discountObject) {
 
-        // Step 1: Get buy requirements and get rewards from coupon
-        List<CouponXProduct> buyRequirements = coupon.getXProducts(); // e.g., [Buy 2 of A, Buy 3 of B]
-        List<CouponYProduct> getRewards = coupon.getYProducts(); // e.g., [Get 4 of C]
+        List<CouponXProduct> buyRequirements = coupon.getXProducts();
+        List<CouponYProduct> getRewards = coupon.getYProducts();
 
-        // Step 2: Create a map of cart items for easy lookup
         Map<Integer, Integer> cartProductQuantities = new HashMap<>();
         for (CommonProductXQuantityDto item : cart.getCartProducts()) {
             cartProductQuantities.put(item.getProductId(), item.getQuantity());
         }
 
-        // Step 3: Calculate how many complete "buy" sets can be formed
         int maxPossibleSets = calculateMaxBuySets(buyRequirements, cartProductQuantities);
 
         if (maxPossibleSets == 0) {
@@ -377,10 +330,8 @@ public class CouponServiceImpl implements CouponService {
             return discountObject;
         }
 
-        // Step 4: Check how many reward sets are available in cart
         int maxRewardSetsAvailable = calculateMaxRewardSets(getRewards, cartProductQuantities);
 
-        // Step 5: Calculate actual applicable sets (limited by buy sets, reward availability, and repetition limit)
         int applicableSets = Math.min(maxPossibleSets,
                 Math.min(maxRewardSetsAvailable, coupon.getRepetitionLimit()));
 
@@ -391,10 +342,10 @@ public class CouponServiceImpl implements CouponService {
             return discountObject;
         }
 
-        // Step 6: Calculate total discount (cost of free items)
         int totalDiscount = calculateRewardDiscount(getRewards, applicableSets, productMap);
 
-        // Step 7: Set result
+        discountObject.setOriginalCartAmount(cartTotal);
+        discountObject.setCouponId(coupon.getCouponId());
         discountObject.setDiscountAmount(totalDiscount);
         discountObject.setFinalCartAmount(cartTotal - totalDiscount);
         discountObject.setMessage(String.format("BxGy offer applied %d time(s). You save ₹%d!",
@@ -413,10 +364,8 @@ public class CouponServiceImpl implements CouponService {
             int requiredQuantity = requirement.getQuantityRequired();
             int availableQuantity = cartProductQuantities.getOrDefault(productId, 0);
 
-            // Calculate how many sets this product can support
             int possibleSetsForThisProduct = availableQuantity / requiredQuantity;
 
-            // The limiting factor determines the total sets
             maxSets = Math.min(maxSets, possibleSetsForThisProduct);
         }
 
@@ -433,10 +382,8 @@ public class CouponServiceImpl implements CouponService {
             int rewardQuantity = reward.getQuantityRewarded();
             int availableQuantity = cartProductQuantities.getOrDefault(productId, 0);
 
-            // Calculate how many reward sets this product can support
             int possibleRewardSetsForThisProduct = availableQuantity / rewardQuantity;
 
-            // The limiting factor determines the total reward sets
             maxRewardSets = Math.min(maxRewardSets, possibleRewardSetsForThisProduct);
         }
 

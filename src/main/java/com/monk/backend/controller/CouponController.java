@@ -24,16 +24,16 @@ public class CouponController {
     @PostMapping("coupons")
     public ResponseEntity<ResponseDto<Coupon>> createNewCoupon(@RequestBody CreateNewCouponRequest cr) throws JsonProcessingException {
         ResponseDto<Coupon> response = new ResponseDto();
-        Coupon newCoupon = null;
         try{
-            newCoupon = couponService.createCoupon(cr,null);
+            Coupon newCoupon = couponService.createCoupon(cr,null);
+            response.setPayload(newCoupon);
         }catch(Exception e){
             response.setStatus("FAILURE");
             response.setMessage(e.getMessage());
             response.setPayload(null);
             return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
         }
-        response.setPayload(newCoupon);
+
         response.setStatus("SUCCESS");
         response.setMessage("New coupon created successfully!");
         return new ResponseEntity<>(response, HttpStatus.CREATED);
@@ -57,18 +57,54 @@ public class CouponController {
     }
 
     @GetMapping("coupons/{id}")
-    public ResponseEntity<Coupon> getCoupon(@PathVariable int id){
-        return new ResponseEntity<>(couponService.getCouponById(id),HttpStatus.OK);
+    public ResponseEntity<ResponseDto<Coupon>> getCoupon(@PathVariable int id){
+        ResponseDto<Coupon> response = new ResponseDto<>();
+        try {
+            Coupon coupon = couponService.getCouponById(id);
+            response.setPayload(coupon);
+        }catch (Exception e){
+            response.setStatus("FAILURE");
+            response.setMessage(e.getMessage());
+            response.setPayload(null);
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        }
+        response.setStatus("SUCCESS");
+        response.setMessage("Coupon fetched for given ID!");
+        return new ResponseEntity<>(response,HttpStatus.OK);
     }
 
     @PutMapping("coupons/{id}")
-    public ResponseEntity<Coupon> updateCoupon(@PathVariable int id, @RequestBody CreateNewCouponRequest couponReq) throws JsonProcessingException {
-        return new ResponseEntity<>(couponService.createCoupon(couponReq, id),HttpStatus.OK);
+    public ResponseEntity<ResponseDto<Coupon>> updateCoupon(@PathVariable int id, @RequestBody CreateNewCouponRequest couponReq) throws JsonProcessingException {
+        ResponseDto<Coupon> response = new ResponseDto<>();
+        try {
+            Coupon coupon = couponService.createCoupon(couponReq, id);
+            response.setPayload(coupon);
+        }catch (Exception e){
+            response.setStatus("FAILURE");
+            response.setMessage(e.getMessage());
+            response.setPayload(null);
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        }
+        response.setStatus("SUCCESS");
+        response.setMessage("Coupon updated successfully!");
+        return new ResponseEntity<>(response,HttpStatus.OK);
     }
 
     @DeleteMapping("coupons/{id}")
-    public ResponseEntity<Coupon> deleteCoupon(@PathVariable int id){
-        return new ResponseEntity<>(couponService.deleteCouponByID(id),HttpStatus.OK);
+    public ResponseEntity<ResponseDto<Coupon>> deleteCoupon(@PathVariable int id){
+        ResponseDto<Coupon> response = new ResponseDto<>();
+        try {
+            Coupon coupon = couponService.deleteCouponByID(id);
+            response.setPayload(coupon);
+        }catch (Exception e){
+            response.setStatus("FAILURE");
+            response.setMessage(e.getMessage());
+            response.setPayload(null);
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        }
+        response.setStatus("SUCCESS");
+        response.setMessage("Coupon deleted successfully!");
+        return new ResponseEntity<>(response,HttpStatus.OK);
     }
 
     @PostMapping("applicable-coupons")

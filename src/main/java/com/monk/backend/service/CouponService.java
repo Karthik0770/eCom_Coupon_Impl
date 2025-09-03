@@ -11,7 +11,6 @@ import java.util.List;
 public interface CouponService {
     public List<Coupon> getAllCoupons();
     public Coupon deleteCouponByID(int id);
-    public Coupon updateCouponById(int id, CreateNewCouponRequest coupon);
     public Coupon getCouponById(int id);
     public Coupon createCoupon(CreateNewCouponRequest request, Integer id) throws JsonProcessingException;
     public List<DiscountObjectDto> getApplicableCouponsForCart(CartRequestDto cart);
