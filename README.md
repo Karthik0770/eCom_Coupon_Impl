@@ -1,10 +1,17 @@
 # ECom_Coupon_Impl
 
-## CASES IMPLEMENTED -
+Deployed on render - [https://ecom-coupon-impl.onrender.com/](https://ecom-coupon-impl.onrender.com/)
 
 #### DB used - 
 H2 In memory database with MySQL format
 
+endpoint to access h2 database - /h2-console
+
+url for db connection - jdbc:h2:mem:coupons
+
+username for connection - sa
+
+## CASES IMPLEMENTED -
 
 ### - POST /product/add : 
 - Create a new product entry : Creating a product is required before adding it to a coupon's constraints or having it in cart object.
