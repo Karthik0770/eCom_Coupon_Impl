@@ -217,7 +217,7 @@ Sample response :
 ```json
 {
   "status": "SUCCESS",
-  "message": "Applicable coupons fetched!",
+  "message": "Coupon application details fetched!",
   "payload": {
       "couponId": (Int) | id of the applicable coupon,
       "code": (String) | coupon code ,
