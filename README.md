@@ -32,6 +32,9 @@ username for connection - sa
 }
 ```
 
+### - POST /product/get :
+- Get all products created
+
 ### - GET /v1/coupons : Get all coupons - 
 - Gives all the coupons created in a list.
 

@@ -18,6 +18,17 @@ public class ProductDao {
     ProductRepository productRepository;
     Logger logger = LoggerFactory.getLogger("logger");
 
+    public List<Product> findAll(){
+        List<Product> products = null;
+        try {
+            products = productRepository.findAll();
+        }catch (Exception e){
+            logger.error("Error while fetching products from db");
+        }
+        if (products!=null && products.isEmpty()) return null;
+        return products;
+    }
+
     public List<Product> findAllById(List<Integer> productIds){
         List<Product> products = null;
         try{
